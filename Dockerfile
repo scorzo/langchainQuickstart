@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir fastapi langchain langserve uvicorn
+RUN pip install --no-cache-dir fastapi langchain langserve uvicorn openai sse_starlette
 
 # Make port 8000 available to the world outside this container
 EXPOSE 8000

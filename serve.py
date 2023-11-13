@@ -7,6 +7,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.schema import BaseOutputParser
 from langserve import add_routes
 
+import configparser
+
 # 1. Chain definition
 
 class CommaSeparatedListOutputParser(BaseOutputParser[List[str]]):
@@ -17,6 +19,17 @@ class CommaSeparatedListOutputParser(BaseOutputParser[List[str]]):
         """Parse the output of an LLM call."""
         return text.strip().split(", ")
 
+def load_config(config_file_path: str) -> str:
+    config_parser = configparser.ConfigParser()
+    config_parser.read(config_file_path)
+
+    openai_api_key = config_parser.get("openai", "api_key")
+
+    return openai_api_key
+
+config_file_path = "secure.ini"
+openai_api_key = load_config(config_file_path)
+
 template = """You are a helpful assistant who generates comma separated lists.
 A user will pass in a category, and you should generate 5 objects in that category in a comma separated list.
 ONLY return a comma separated list, and nothing more."""
@@ -26,7 +39,7 @@ chat_prompt = ChatPromptTemplate.from_messages([
     ("system", template),
     ("human", human_template),
 ])
-category_chain = chat_prompt | ChatOpenAI(openai_api_key="") | CommaSeparatedListOutputParser()
+category_chain = chat_prompt | ChatOpenAI(openai_api_key=openai_api_key) | CommaSeparatedListOutputParser()
 
 # 2. App definition
 app = FastAPI(
@@ -41,6 +54,8 @@ add_routes(
     category_chain,
     path="/category_chain",
 )
+
+
 
 if __name__ == "__main__":
     import uvicorn
